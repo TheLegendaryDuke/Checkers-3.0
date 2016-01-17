@@ -1,0 +1,131 @@
+f = new Form3();
+                f.Show();
+                List<State> one = new List<State>();
+                State news = new State();
+                for(int i = 0; i < 16; i++) {
+                    int owner = pcs[i].owner;
+                    if(owner == 0) {
+                        news.state[i, 0] = -1;
+                        news.state[i, 1] = -1;
+                        news.state[i, 2] = -1;
+                    }else {
+                        news.state[i, 0] = pcs[i].x;
+                        news.state[i, 1] = pcs[i].y;
+                        news.state[i, 2] = pcs[i].king ? 1 : 0;
+                    }
+                }
+                for(int i = 8; i < 16; i++) {
+                     State cur = new State(news);
+                    cur.addStep(i,one, false);
+                }
+                int len = one.Count;
+                if (len == 0)
+                {
+                    form.endSingle();
+                    return;
+                }
+                float[] res = new float[len];
+                int count1 = 0;
+                foreach(State x in one) {
+                    x.eval();
+                    if (x.value == 1000)
+                    {
+                        form.endSingle();
+                        return;
+                    }
+                    List<State> two = new List<State>();
+                    int count2 = 0;
+                    for(int i = 0; i < 8; i++) {
+                        x.addStep(i, two, false);
+                    }
+                    if (two.Count == 0)
+                    {
+
+                        form.endSingle();
+                        return;
+
+                    }
+                    else
+                    {
+                        float[] res2 = new float[two.Count];
+                        if (form.dif == 1)
+                        {
+                            foreach (State y in two)
+                            {
+                                y.eval();
+                            }
+                            float val = 0;
+                            foreach (State y in two)
+                            {
+                                val += y.value;
+                            }
+                            val /= two.Count;
+                            res[one.IndexOf(x)] = val;
+                        }
+                        else
+                        {
+                            foreach (State y in two)
+                            {
+                                List<State> three = new List<State>();
+                                for (int i = 8; i < 16; i++)
+                                {
+                                    y.addStep(i, three, false);
+                                }
+                                if (three.Count == 0)
+                                {
+                                    res2[count2] = -1000;
+                                }
+                                else
+                                {
+                                    float[] res3 = new float[three.Count];
+                                    int count3 = 0;
+                                    foreach (State z in three)
+                                    {
+                                        int min4 = 1000;
+                                        List<State> four = new List<State>();
+                                        for (int i = 0; i < 8; i++)
+                                        {
+                                            z.addStep(i, four, false);
+                                        }
+                                        if (form.dif == 2)
+                                        {
+                                            foreach (State w in four)
+                                            {
+                                                w.eval();
+                                                if(w.value < min4) min4 = w.value;
+                                            }
+                                            if (four.Count == 0)
+                                            {
+                                                min4 = 80;
+                                            }
+                                            res3[count3] = min4;
+                                        }
+                                        count3++;
+                                    }
+                                    res2[count2] = res3.Max();
+                                }
+                                count2++;
+                            }
+                            res[count1] = res2.Min();
+                            count1++;
+                        }
+                    }
+                    
+                }
+
+                float max = -1000;
+                int maxI = 0;
+                for(int i = 0; i < len; i++) {
+                    if(res[i] > max) {
+                        max = res[i];
+                        maxI = i;
+                    }
+                }
+                State finalS = one[maxI];
+                for (int i = 8; i < 16; i++) 
+                {
+                    if (pcs[i].owner == 2 && (pcs[i].x != finalS.state[i, 0] || pcs[i].y != finalS.state[i, 1]))
+                    {
+                        move(i, finalS);
+                    }
+                }
